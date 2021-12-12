@@ -1,0 +1,42 @@
+{
+  "Actions": [
+    {
+      "Icon": "resources/actionIcon",
+      "Name": "MailCheck",
+      "States": [
+        {
+          "Image": "resources/actionDefaultImage",
+          "TitleAlignment": "middle",
+          "FontSize": "11"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Displays total number of unread e-mails in IMAP accounts (including Gmail).",
+      "UUID": "com.studioafraz.mailcheck.action"
+    }
+  ],
+  "SDKVersion": 2,
+  "Author": "Dennis Afraz",
+  "CodePath": "plugin/main.html",
+  "Description": "Displays total number of unread e-mails in IMAP accounts (including Gmail).",
+  "Name": "MailCheck",
+  "Icon": "resources/pluginIcon",
+  "PropertyInspectorPath": "pi/main_pi.html",
+  "URL": "https://studioafraz.com",
+  "Version": "1.0.0",
+  "Category": "STUDIO AFRAZ",
+  "CategoryIcon": "resources/categoryIcon",
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "4.5.1"
+  }
+}

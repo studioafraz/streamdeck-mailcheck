@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>com.studioafraz.mailcheck.pi</title>
+    <link rel="stylesheet" href="sdpi.css" />
+    <script src="main_pi.js"></script>
+</head>
+
+<body onload="updateSettings()">
+<div class="sdpi-wrapper hidden">
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>
+                Title must be enabled and empty to display contents.
+            </summary>
+        </details>
+    </div>
+
+    <div class="sdpi-heading">ACCOUNTS</div>
+
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">PHP Companion</div>
+        <input
+                class="sdpi-item-value"
+                id="fetcherURL"
+                value=""
+                onchange="updateSettings()"
+                placeholder="https:// ... /mailcount.php"
+                required
+        />
+    </div>
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Fetch Frequency (minutes)</div>
+        <input
+                class="sdpi-item-value"
+                id="frequency"
+                value=""
+                onchange="updateSettings()"
+                placeholder="Default: 3"
+        />
+    </div>
+	
+	<div class="sdpi-item">
+        <details class="message info">
+            <summary>
+                Be careful with fetch frequency values below 3. They can trigger mail server limits or even slow down your stream deck.
+            </summary>
+        </details>
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Server(s)</div>
+        <textarea
+                class="sdpi-item-value"
+                id="imapServers"
+                value=""
+                onchange="updateSettings()"
+                placeholder="One entry per line"
+                required
+        /></textarea>
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Username(s)</div>
+        <textarea
+                class="sdpi-item-value"
+                id="imapUsers"
+                value=""
+                onchange="updateSettings()"
+                placeholder="One entry per line"
+                required
+        /></textarea>
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Password(s)</div>
+        <textarea
+                class="sdpi-item-value"
+                id="imapPasswords"
+                value=""
+                onchange="updateSettings()"
+                placeholder="One entry per line"
+                required
+        /></textarea>
+    </div>
+	
+	<div class="sdpi-item">
+        <details class="message info">
+            <summary>
+                To use a Gmail inbox you need to enable IMAP in your Gmail settings first. After that you must set up the 2-Step-Verification in your Google account settings and define an App Password. You can then use this password to set up this plugin.
+            </summary>
+        </details>
+    </div>
+	
+	<div class="sdpi-heading">STYLES</div>
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Animations</div>
+        <select
+                class="sdpi-item-value select"
+                id="allowAnimations"
+                onchange="updateSettings()"
+        >
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+        </select>
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Icon Color (default)</div>
+        <input
+                class="sdpi-item-value"
+                id="styleIconColorDefault"
+                value=""
+                onchange="updateSettings()"
+                placeholder="Default: transparent"
+        />
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Icon Color (unread)</div>
+        <input
+                class="sdpi-item-value"
+                id="styleIconColorUnread"
+                value=""
+                onchange="updateSettings()"
+                placeholder="Default: #007aff"
+        />
+    </div>
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Custom Title (Text)</div>
+        <input
+                class="sdpi-item-value"
+                id="styleTitleCustomText"
+                value=""
+                onchange="updateSettings()"
+        />
+    </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Custom Title (Position)</div>
+        <select
+                class="sdpi-item-value select"
+                id="styleTitleCustomPosition"
+                onchange="updateSettings()"
+        >
+            <option value="over">Over Number</option>
+            <option value="under">Under Number</option>
+        </select>
+    </div>
+	
+	<div class="sdpi-item">
+	<button
+                class="sdpi-item-value"
+                onclick="updateSettings()"
+        >
+            Save Settings
+        </button>
+        <button
+                class="sdpi-item-value"
+                onclick="javascript: window.location.href='mailto:info@studioafraz.com';"
+        >
+            Contact Us
+        </button>
+    </div>
+    
+</div>
+</body>
+</html>
