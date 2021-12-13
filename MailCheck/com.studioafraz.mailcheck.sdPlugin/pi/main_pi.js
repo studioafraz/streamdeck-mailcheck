@@ -42,6 +42,7 @@ function connectElgatoStreamDeckSocket(
         if (jsonObj.event === "didReceiveSettings") {
             const payload = jsonObj.payload.settings;
             initiateElement("fetcherURL", payload.fetcherURL);
+			initiateElement("backgroundFetching", payload.backgroundFetching, "true");
             initiateElement("frequency", payload.frequency, "3");
 			initiateElement("imapServers", payload.imapServers);
 			initiateElement("imapUsers", payload.imapUsers);
@@ -49,6 +50,7 @@ function connectElgatoStreamDeckSocket(
 			initiateElement("allowAnimations", payload.allowAnimations, "true");
 			initiateElement("styleIconColorDefault", payload.styleIconColorDefault, "transparent");
 			initiateElement("styleIconColorUnread", payload.styleIconColorUnread, "#007aff");
+			initiateElement("styleTitleDisplayType", payload.styleTitleDisplayType, "true");			
 			initiateElement("styleTitleCustomText", payload.styleTitleCustomText);
 			initiateElement("styleTitleCustomPosition", payload.styleTitleCustomPosition, "over");
 			
@@ -71,6 +73,7 @@ function updateSettings() {
     if (websocket && websocket.readyState === 1) {
         let payload = {};
         payload.fetcherURL = document.getElementById("fetcherURL").value;
+		payload.backgroundFetching = document.getElementById("backgroundFetching").value;
         payload.frequency = document.getElementById("frequency").value;
 		payload.imapServers = document.getElementById("imapServers").value;
 		payload.imapUsers = document.getElementById("imapUsers").value;
@@ -78,6 +81,7 @@ function updateSettings() {
 		payload.allowAnimations = document.getElementById("allowAnimations").value;
 		payload.styleIconColorDefault = document.getElementById("styleIconColorDefault").value;
 		payload.styleIconColorUnread = document.getElementById("styleIconColorUnread").value;
+		payload.styleTitleDisplayType = document.getElementById("styleTitleDisplayType").value;
 		payload.styleTitleCustomText = document.getElementById("styleTitleCustomText").value;
 		payload.styleTitleCustomPosition = document.getElementById("styleTitleCustomPosition").value;
 		

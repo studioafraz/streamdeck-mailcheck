@@ -32,6 +32,7 @@ function connectElgatoStreamDeckSocket(
         const context = jsonObj["context"];
 		
 		let fetcherURL = "";
+		let backgroundFetching = "true";
 		let frequency = 1000 * 60 * 3;
 		let imapServers = "";
 		let imapUsers = "";
@@ -40,12 +41,13 @@ function connectElgatoStreamDeckSocket(
 		let allowAnimations = "true";
 		let styleIconColorDefault = "transparent";
 		let styleIconColorUnread = "#007aff";
+		let styleTitleDisplayType = "true";
 		let styleTitleCustomText = "";
 		let styleTitleCustomPosition = "over";
 		
 		
 		
-        if (jsonObj["event"] === "willAppear") {
+        if (jsonObj["event"] === "didReceiveSettings" || jsonObj["event"] === "willAppear" || jsonObj["event"] === "keyDown") { //After updating the settings via Property Inspector OR when the plugin just gets displayed OR on Button Press
 
 			if ( //Check if all required settings were set
 				jsonObj.payload.settings != null &&
@@ -56,6 +58,9 @@ function connectElgatoStreamDeckSocket(
 
 			) {
 				fetcherURL = jsonObj.payload.settings["fetcherURL"];
+				backgroundFetching = jsonObj.payload.settings["backgroundFetching"];
+				
+				
 				imapServers = jsonObj.payload.settings["imapServers"];
 				imapUsers = jsonObj.payload.settings["imapUsers"];
 				imapPasswords = jsonObj.payload.settings["imapPasswords"];
@@ -69,119 +74,50 @@ function connectElgatoStreamDeckSocket(
 				if (jsonObj.payload.settings["styleIconColorDefault"] != "transparent" && jsonObj.payload.settings["styleIconColorDefault"] != ""){ //Check for custom value
 					styleIconColorDefault = jsonObj.payload.settings["styleIconColorDefault"];
 				}
+				
 				if (jsonObj.payload.settings["styleIconColorUnread"] != "#007aff" && jsonObj.payload.settings["styleIconColorUnread"] != ""){ //Check for custom value
 					styleIconColorUnread = jsonObj.payload.settings["styleIconColorUnread"];
 				}
+				
+				styleTitleDisplayType = jsonObj.payload.settings["styleTitleDisplayType"];
+				
 				if (jsonObj.payload.settings["styleTitleCustomText"] != ""){ //Check for custom value
 					styleTitleCustomText = jsonObj.payload.settings["styleTitleCustomText"];
 				}
-				styleTitleCustomPosition = jsonObj.payload.settings["styleTitleCustomPosition"];
-
-			}
-            
-			clearInterval(fetchTimer); // Stop timer with old values to start new timer with new values
-			sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition);
-			
-			fetchTimer = setInterval(function() { sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition); },frequency);
-
-			
-        }
-		else if (jsonObj["event"] === "keyDown") {
-
-			if ( //Check if all required settings were set
-				jsonObj.payload.settings != null &&
-				jsonObj.payload.settings.hasOwnProperty("fetcherURL") &&
-				jsonObj.payload.settings.hasOwnProperty("imapServers") &&
-				jsonObj.payload.settings.hasOwnProperty("imapUsers") &&
-				jsonObj.payload.settings.hasOwnProperty("imapPasswords")
-
-			) {				
-				fetcherURL = jsonObj.payload.settings["fetcherURL"];
-				imapServers = jsonObj.payload.settings["imapServers"];
-				imapUsers = jsonObj.payload.settings["imapUsers"];
-				imapPasswords = jsonObj.payload.settings["imapPasswords"];
 				
-				if (jsonObj.payload.settings["frequency"] != "3" && jsonObj.payload.settings["frequency"] != ""){ //Check for custom value
-					frequency = 1000 * 60 * Number(jsonObj.payload.settings["frequency"]);
-				}
-				
-				allowAnimations = jsonObj.payload.settings["allowAnimations"];
-				
-				if (jsonObj.payload.settings["styleIconColorDefault"] != "transparent" && jsonObj.payload.settings["styleIconColorDefault"] != ""){ //Check for custom value
-					styleIconColorDefault = jsonObj.payload.settings["styleIconColorDefault"];
-				}
-				if (jsonObj.payload.settings["styleIconColorUnread"] != "#007aff" && jsonObj.payload.settings["styleIconColorUnread"] != ""){ //Check for custom value
-					styleIconColorUnread = jsonObj.payload.settings["styleIconColorUnread"];
-				}
-				if (jsonObj.payload.settings["styleTitleCustomText"] != ""){ //Check for custom value
-					styleTitleCustomText = jsonObj.payload.settings["styleTitleCustomText"];
-				}
-				styleTitleCustomPosition = jsonObj.payload.settings["styleTitleCustomPosition"];
-			}
-			
-			clearInterval(fetchTimer); // Stop timer with old values to start new timer with new values
-			sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition);
-			
-			fetchTimer = setInterval(function() { sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition); },frequency);
-			
-
-		//START Debug
-		let jsonDeck = {
-			event: "setTitle",
-			context,
-			payload: {
-				title: frequency.toString(),
-			},
-		};
-
-		 //websocket.send(JSON.stringify(jsonDeck));
-		//END Debug
-			
-        }
-		else if (jsonObj["event"] === "didReceiveSettings") { //After updating the settings via Property Inspector
-			
-			if ( //Check if all required settings were set
-				jsonObj.payload.settings != null &&
-				jsonObj.payload.settings.hasOwnProperty("fetcherURL") &&
-				jsonObj.payload.settings.hasOwnProperty("imapServers") &&
-				jsonObj.payload.settings.hasOwnProperty("imapUsers") &&
-				jsonObj.payload.settings.hasOwnProperty("imapPasswords")
-
-			) {
-				fetcherURL = jsonObj.payload.settings["fetcherURL"];
-				imapServers = jsonObj.payload.settings["imapServers"];
-				imapUsers = jsonObj.payload.settings["imapUsers"];
-				imapPasswords = jsonObj.payload.settings["imapPasswords"];
-				
-				if (jsonObj.payload.settings["frequency"] != "3" && jsonObj.payload.settings["frequency"] != ""){ //Check for custom value
-					frequency = 1000 * 60 * Number(jsonObj.payload.settings["frequency"]);
-				}
-				
-				allowAnimations = jsonObj.payload.settings["allowAnimations"];
-				
-				if (jsonObj.payload.settings["styleIconColorDefault"] != "transparent" && jsonObj.payload.settings["styleIconColorDefault"] != ""){ //Check for custom value
-					styleIconColorDefault = jsonObj.payload.settings["styleIconColorDefault"];
-				}
-				if (jsonObj.payload.settings["styleIconColorUnread"] != "#007aff" && jsonObj.payload.settings["styleIconColorUnread"] != ""){ //Check for custom value
-					styleIconColorUnread = jsonObj.payload.settings["styleIconColorUnread"];
-				}
-				if (jsonObj.payload.settings["styleTitleCustomText"] != ""){ //Check for custom value
-					styleTitleCustomText = jsonObj.payload.settings["styleTitleCustomText"];
-				}
 				styleTitleCustomPosition = jsonObj.payload.settings["styleTitleCustomPosition"];
 			}
             
 			clearInterval(fetchTimer); // Stop timer with old values to start new timer with new values
-			sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition);
-			fetchTimer = setInterval(function() { sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition); },frequency);
 			
+			sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleDisplayType,styleTitleCustomText,styleTitleCustomPosition);
+			
+			if (backgroundFetching != "false"){ //Check if Background Fetching is not disabled
+				fetchTimer = setInterval(function() { sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleDisplayType,styleTitleCustomText,styleTitleCustomPosition); },frequency);
+			}
+			
+        }
+		
+		if (jsonObj["event"] === "keyDown") { //For debugging
+			//START Debug
+			let jsonDeck = {
+				event: "setTitle",
+				context,
+				payload: {
+					title: frequency.toString(),
+				},
+			};
+
+			 //websocket.send(JSON.stringify(jsonDeck));
+			//END Debug
 		}
+		
     };
 }
 
 
 
-function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleCustomText,styleTitleCustomPosition) {
+function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allowAnimations,styleIconColorDefault,styleIconColorUnread,styleTitleDisplayType,styleTitleCustomText,styleTitleCustomPosition) {
 
 	let url = fetcherURL;
 	var servers = imapServers;
@@ -207,9 +143,10 @@ function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allo
 	}
 	
 	let params = "?servers=" + servers + "&users=" + users + "&passwords=" + passwords;
-	var allowAnimationsStatus = allowAnimations;
+	let allowAnimationsStatus = allowAnimations;
 	let styleIconColorDefaultValue = styleIconColorDefault;
 	let styleIconColorUnreadValue = styleIconColorUnread;
+	let styleTitleDisplayTypeValue = styleTitleDisplayType;
 	let styleTitleCustomTextValue = styleTitleCustomText;
 	let styleTitleCustomPositionValue = styleTitleCustomPosition;
 	
@@ -305,28 +242,40 @@ function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allo
 						websocket.send(JSON.stringify(jsonDeck));
 					}
 				
-					if (styleTitleCustomTextValue != ""){
-						if (styleTitleCustomPositionValue == "over"){
-							titleContent = styleTitleCustomTextValue + "\n" + titleContent;
+					if (styleTitleDisplayTypeValue == "false") { //Check if Title Display is disabled
+						let jsonDeck = {
+							event: "setTitle",
+							context,
+							payload: {
+								title: titleContent,
+							},
+						};
+
+						websocket.send(JSON.stringify(jsonDeck));
+					}
+					else { //Title Display enabled
+						if (styleTitleCustomTextValue != ""){
+							if (styleTitleCustomPositionValue == "over"){
+								titleContent = styleTitleCustomTextValue + "\n" + titleContent;
+							}
+							else {
+								titleContent = titleContent + "\n" + styleTitleCustomTextValue;
+							}
 						}
 						else {
-							titleContent = titleContent + "\n" + styleTitleCustomTextValue;
+							titleContent = titleContent + titleContentWording;
 						}
-					}
-					else {
-						titleContent = titleContent + titleContentWording;
-					}
-					
-					let jsonDeck = {
-						event: "setTitle",
-						context,
-						payload: {
-							title: titleContent,
-						},
-					};
+						
+						let jsonDeck = {
+							event: "setTitle",
+							context,
+							payload: {
+								title: titleContent,
+							},
+						};
 
-					websocket.send(JSON.stringify(jsonDeck));
-								
+						websocket.send(JSON.stringify(jsonDeck));
+					}								
 				
 				}
 				else {

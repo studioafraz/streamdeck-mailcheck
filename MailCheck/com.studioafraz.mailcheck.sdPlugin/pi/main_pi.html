@@ -12,7 +12,7 @@
     <div class="sdpi-item">
         <details class="message info">
             <summary>
-                Title must be enabled and empty to display contents.
+                For plugin setup <a href="https://github.com/studioafraz/streamdeck-mailcheck" target="_blank">click here</a>
             </summary>
         </details>
     </div>
@@ -30,6 +30,19 @@
                 required
         />
     </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Background Fetching</div>
+        <select
+                class="sdpi-item-value select"
+                id="backgroundFetching"
+                onchange="updateSettings()"
+        >
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+        </select>
+    </div>
+	
 	<div class="sdpi-item">
         <div class="sdpi-item-label">Fetch Frequency (minutes)</div>
         <input
@@ -44,7 +57,7 @@
 	<div class="sdpi-item">
         <details class="message info">
             <summary>
-                Be careful with fetch frequency values below 3. They can trigger mail server limits or even slow down your stream deck.
+                Values below 3 can trigger server limits or slow down your device.
             </summary>
         </details>
     </div>
@@ -88,7 +101,7 @@
 	<div class="sdpi-item">
         <details class="message info">
             <summary>
-                To use a Gmail inbox you need to enable IMAP in your Gmail settings first. After that you must set up the 2-Step-Verification in your Google account settings and define an App Password. You can then use this password to set up this plugin.
+                For Gmail setup <a href="https://github.com/studioafraz/streamdeck-mailcheck" target="_blank">click here</a>
             </summary>
         </details>
     </div>
@@ -127,6 +140,19 @@
                 placeholder="Default: #007aff"
         />
     </div>
+	
+	<div class="sdpi-item">
+        <div class="sdpi-item-label">Title Display</div>
+        <select
+                class="sdpi-item-value select"
+                id="styleTitleDisplayType"
+                onchange="updateSettings()"
+        >
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+        </select>
+    </div>
+	
 	<div class="sdpi-item">
         <div class="sdpi-item-label">Custom Title (Text)</div>
         <input
