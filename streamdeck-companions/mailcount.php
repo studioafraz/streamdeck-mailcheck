@@ -1,4 +1,5 @@
 <?php 
+header('Access-Control-Allow-Origin: *'); 
 
 function CountUnreadMail($host, $login, $passwd) {
     $mbox = imap_open($host, $login, $passwd);
