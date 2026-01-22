@@ -1,24 +1,33 @@
 <?php 
+error_reporting(E_ALL & ~E_NOTICE);
+
 header('Access-Control-Allow-Origin: *'); 
 
-function CountUnreadMail($host, $login, $passwd) {
-    $mbox = imap_open($host, $login, $passwd);
-    $count = 0;
+imap_timeout(IMAP_OPENTIMEOUT, 5);
+imap_timeout(IMAP_READTIMEOUT, 5);
+imap_timeout(IMAP_WRITETIMEOUT, 5);
+imap_timeout(IMAP_CLOSETIMEOUT, 5);
+
+function CountUnreadMail($host, $login, $passwd, $retry = 1) {
+    $mbox = @imap_open($host, $login, $passwd, 0, 1, [
+        'DISABLE_AUTHENTICATOR' => 'GSSAPI'
+    ]);
+
     if (!$mbox) {
-        print_r(imap_errors());
-    } else {
-        $headers = imap_headers($mbox);
-        foreach ($headers as $mail) {
-            $flags = substr($mail, 0, 4);
-            $isunr = (strpos($flags, "U") !== false);
-            if ($isunr)
-            $count++;
+        if ($retry > 0) {
+            usleep(500000); // 0,5 Sekunden
+            return CountUnreadMail($host, $login, $passwd, $retry - 1);
         }
+        return 0;
     }
+
+    $mails = imap_search($mbox, 'UNSEEN');
+    $count = is_array($mails) ? count($mails) : 0;
 
     imap_close($mbox);
     return $count;
 }
+
 $countTotal = 0;
 
 if ( isset($_GET['servers']) && isset($_GET['users']) && isset($_GET['passwords']) ) {
@@ -29,15 +38,21 @@ if ( isset($_GET['servers']) && isset($_GET['users']) && isset($_GET['passwords'
 		$passwords = explode("splitMarker", $_GET['passwords']);
 		
 		if ( (count($servers) == count($users)) && (count($users) == count($passwords)) ){
-			foreach ($servers as $key=>$server) {
-				if ( strpos($server, '.gmail.com') ) {
-					$count = CountUnreadMail('{' . $server . '/novalidate-cert:993/imap/ssl}INBOX', $users[$key], $passwords[$key]);
+			foreach ($servers as $key => $server) {
+
+				if (strpos($server, '.gmail.com') !== false) {
+					$host = '{' . $server . '/novalidate-cert:993/imap/ssl}INBOX';
+				} else {
+					$host = '{' . $server . ':993/imap/ssl}INBOX';
 				}
-				else {
-					$count = CountUnreadMail('{' . $server . ':993/imap/ssl}INBOX', $users[$key], $passwords[$key]);
-				}
-				
-				$countTotal = $countTotal + $count;
+
+				$countTotal += CountUnreadMail(
+					$host,
+					$users[$key],
+					$passwords[$key]
+				);
+
+				usleep(300000); // 0,3 Sekunden Pause zwischen Accounts
 			}
 		}
 		else {
