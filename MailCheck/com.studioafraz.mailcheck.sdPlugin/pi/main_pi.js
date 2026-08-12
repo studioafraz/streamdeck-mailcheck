@@ -2,6 +2,9 @@ let websocket = null,
     uuid = null,
     actionInfo = {};
 
+let socketArgs = null;
+let reconnectAttempts = 0;
+
 function connectElgatoStreamDeckSocket(
     inPort,
     inPropertyInspectorUUID,
@@ -11,15 +14,21 @@ function connectElgatoStreamDeckSocket(
 ) {
     uuid = inPropertyInspectorUUID;
     actionInfo = JSON.parse(inActionInfo);
+    socketArgs = { inPort, inRegisterEvent };
 
-    websocket = new WebSocket("ws://localhost:" + inPort);
+    openSocket();
+}
+
+function openSocket() {
+    websocket = new WebSocket("ws://localhost:" + socketArgs.inPort);
 
     websocket.onopen = function () {
-		
+        reconnectAttempts = 0;
+
         // WebSocket is connected, register the Property Inspector
         let json = {
-            event: inRegisterEvent,
-            uuid: inPropertyInspectorUUID,
+            event: socketArgs.inRegisterEvent,
+            uuid: uuid,
         };
         websocket.send(JSON.stringify(json));
 
@@ -33,6 +42,14 @@ function connectElgatoStreamDeckSocket(
             context: uuid,
         };
         websocket.send(JSON.stringify(json));
+    };
+
+    websocket.onclose = function () {
+        scheduleReconnect();
+    };
+
+    websocket.onerror = function () {
+        websocket.close(); // Triggers onclose -> reconnect
     };
 
     websocket.onmessage = function (evt) {
@@ -59,6 +76,12 @@ function connectElgatoStreamDeckSocket(
 		const el = document.querySelector(".sdpi-wrapper");
         el && el.classList.remove("hidden");
     };
+}
+
+function scheduleReconnect() {
+    reconnectAttempts++;
+    const delay = Math.min(30000, 1000 * reconnectAttempts); // Back off up to 30s
+    setTimeout(openSocket, delay);
 }
 
 function initiateElement(element, value, fallback = "") {

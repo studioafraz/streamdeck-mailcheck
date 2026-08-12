@@ -8,16 +8,18 @@ imap_timeout(IMAP_READTIMEOUT, 5);
 imap_timeout(IMAP_WRITETIMEOUT, 5);
 imap_timeout(IMAP_CLOSETIMEOUT, 5);
 
-function CountUnreadMail($host, $login, $passwd, $retry = 1) {
-    $mbox = @imap_open($host, $login, $passwd, 0, 1, [
+function CountUnreadMail($host, $login, $passwd, &$failed, $retry = 1) {
+    // n_retries = 0: the c-client's own retry is skipped, our $retry loop below handles it instead
+    $mbox = @imap_open($host, $login, $passwd, 0, 0, [
         'DISABLE_AUTHENTICATOR' => 'GSSAPI'
     ]);
 
     if (!$mbox) {
         if ($retry > 0) {
             usleep(500000); // 0,5 Sekunden
-            return CountUnreadMail($host, $login, $passwd, $retry - 1);
+            return CountUnreadMail($host, $login, $passwd, $failed, $retry - 1);
         }
+        $failed = true;
         return 0;
     }
 
@@ -29,16 +31,22 @@ function CountUnreadMail($host, $login, $passwd, $retry = 1) {
 }
 
 $countTotal = 0;
+$startTime = microtime(true);
+$timeBudget = 12; // Sekunden - bleibt unter dem 15s-Timeout auf Plugin-Seite
 
-if ( isset($_GET['servers']) && isset($_GET['users']) && isset($_GET['passwords']) ) {
-	
-	if (strpos($_GET['servers'], 'splitMarker') && strpos($_GET['users'], 'splitMarker') && strpos($_GET['passwords'], 'splitMarker')) { //Check for multiple accounts
-		$servers = explode("splitMarker", $_GET['servers']);
-		$users = explode("splitMarker", $_GET['users']);
-		$passwords = explode("splitMarker", $_GET['passwords']);
-		
+if ( isset($_POST['servers']) && isset($_POST['users']) && isset($_POST['passwords']) ) {
+
+	if (strpos($_POST['servers'], 'splitMarker') !== false && strpos($_POST['users'], 'splitMarker') !== false && strpos($_POST['passwords'], 'splitMarker') !== false) { //Check for multiple accounts
+		$servers = explode("splitMarker", $_POST['servers']);
+		$users = explode("splitMarker", $_POST['users']);
+		$passwords = explode("splitMarker", $_POST['passwords']);
+
 		if ( (count($servers) == count($users)) && (count($users) == count($passwords)) ){
 			foreach ($servers as $key => $server) {
+
+				if ((microtime(true) - $startTime) >= $timeBudget) {
+					break; // Zeitbudget aufgebraucht: lieber Teilergebnis liefern als das Client-Timeout reißen
+				}
 
 				if (strpos($server, '.gmail.com') !== false) {
 					$host = '{' . $server . '/novalidate-cert:993/imap/ssl}INBOX';
@@ -46,13 +54,17 @@ if ( isset($_GET['servers']) && isset($_GET['users']) && isset($_GET['passwords'
 					$host = '{' . $server . ':993/imap/ssl}INBOX';
 				}
 
+				$failed = false;
 				$countTotal += CountUnreadMail(
 					$host,
 					$users[$key],
-					$passwords[$key]
+					$passwords[$key],
+					$failed
 				);
 
-				usleep(300000); // 0,3 Sekunden Pause zwischen Accounts
+				if ($failed) {
+					usleep(300000); // Pause nur nach einem fehlgeschlagenen Konto, um den Server nicht zu hämmern
+				}
 			}
 		}
 		else {
@@ -61,17 +73,18 @@ if ( isset($_GET['servers']) && isset($_GET['users']) && isset($_GET['passwords'
 
 	}
 	else {
-		if ( strpos($_GET['servers'], '.gmail.com') ) {
-			$count = CountUnreadMail('{' . $_GET['servers'] . '/novalidate-cert:993/imap/ssl}INBOX', $_GET['users'], $_GET['passwords']);
+		$failed = false;
+		if ( strpos($_POST['servers'], '.gmail.com') ) {
+			$count = CountUnreadMail('{' . $_POST['servers'] . '/novalidate-cert:993/imap/ssl}INBOX', $_POST['users'], $_POST['passwords'], $failed);
 		}
 		else {
-			$count = CountUnreadMail('{' . $_GET['servers'] . ':993/imap/ssl}INBOX', $_GET['users'], $_GET['passwords']);
+			$count = CountUnreadMail('{' . $_POST['servers'] . ':993/imap/ssl}INBOX', $_POST['users'], $_POST['passwords'], $failed);
 		}
-		
+
 		$countTotal = $countTotal + $count;
 	}
 
-	echo $countTotal; 
+	echo $countTotal;
 }
 else {
 	echo "Parameter<br>missing";
