@@ -158,10 +158,8 @@ function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allo
 	let styleTitleCustomTextValue = styleTitleCustomText;
 	let styleTitleCustomPositionValue = styleTitleCustomPosition;
 
-	let request = new XMLHttpRequest();
-    request.open("POST", url);
-	request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	request.timeout = 15000; // Abort if no response within 15s so a stuck request can't block future updates
+	const maxRetries = 2; // Helper server is occasionally briefly unreachable; retry before surfacing an error
+	const retryDelay = 3000;
 
 	function showConnectionError() {
 		pendingRequests[context] = false;
@@ -185,16 +183,35 @@ function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allo
 		websocket.send(JSON.stringify(jsonDeck));
 	}
 
-	request.ontimeout = showConnectionError;
-	request.onerror = showConnectionError;
+	function attemptRequest(retriesLeft) {
+		let request = new XMLHttpRequest();
+		request.open("POST", url);
+		request.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		request.timeout = 15000; // Abort if no response within 15s so a stuck request can't block future updates
 
-    request.send(body);
+		function retryOrFail() {
+			if (retriesLeft > 0) {
+				setTimeout(function () { attemptRequest(retriesLeft - 1); }, retryDelay);
+			} else {
+				showConnectionError();
+			}
+		}
 
-    request.onreadystatechange = function () {
-        if (request.readyState === XMLHttpRequest.DONE) {
-			pendingRequests[context] = false;
+		request.ontimeout = retryOrFail;
+		request.onerror = retryOrFail;
 
-            if (request.status === 200) {
+		request.send(body);
+
+		request.onreadystatechange = function () {
+			if (request.readyState === XMLHttpRequest.DONE) {
+
+				if (request.status !== 200) {
+					retryOrFail();
+					return;
+				}
+
+				pendingRequests[context] = false;
+
 				let titleContent = request.responseText;
 				let titleContentWording = "";
 
@@ -336,28 +353,9 @@ function sendRequest(context,fetcherURL,imapServers,imapUsers,imapPasswords,allo
 
 					websocket.send(JSON.stringify(jsonDeck));
 				}
+			}
+		};
+	}
 
-            } else {
-				let titleContent = "Status\nError";
-                let json = {
-                    event: "setTitle",
-                    context,
-					payload: {
-                        title: titleContent,
-                    },
-                };
-                websocket.send(JSON.stringify(json));
-
-				let jsonDeck = {
-				event: "setImage",
-				context,
-				payload: {
-					image: "data:image/svg+xml;charset=utf8,<svg height=\"72\" width=\"72\"><rect x=\"0\" y=\"0\" width=\"72\" height=\"72\" fill=\"#ff3b30\" /></svg>"
-					},
-				};
-
-				websocket.send(JSON.stringify(jsonDeck));
-            }
-        }
-    };
+	attemptRequest(maxRetries);
 }
